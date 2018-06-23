@@ -1,0 +1,17 @@
+{
+  "name": "nuzlock-planner-server",
+  "version": "1.0.0",
+  "description": "Server for nuzlock planer",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Guillem Orellana Trullols",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "jsonwebtoken": "^8.3.0",
+    "redis": "^2.8.0"
+  }
+}
