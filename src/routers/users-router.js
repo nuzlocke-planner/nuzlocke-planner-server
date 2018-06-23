@@ -10,6 +10,10 @@ function hash(s) {
 }
 
 function usersRouter(users) {
+    // Override password validation
+    users.options.passwordValidation = (pass) => pass.length > 9 && pass.match(/[a-z]/i);
+    users.options.passwordValidationErrMessage = 'Password must be larger than 9 characters and include at least one letter';
+
     // Register new user
     router.post('/auth/signup', (req, res) => {
         if (req.body.username) {

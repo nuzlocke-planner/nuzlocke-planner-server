@@ -1,6 +1,6 @@
-# Nuzlock Planner Server
+# Nuzlocke Planner Server
 
-Server for nuzlock planner. Build with NodeJS.
+Server for nuzlocke planner. Build with NodeJS.
 
 ## Users management
 
