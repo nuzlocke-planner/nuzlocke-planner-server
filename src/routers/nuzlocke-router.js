@@ -11,14 +11,16 @@ function nuzlocke_router(app, users) {
                 err
             })
         );
-
     });
 
-    app.post('/nuzlocke/', users.getToken, (req, res) => {
+    app.put('/nuzlocke/', users.getToken, (req, res) => {
         const token = req.token;
         users.verifyToken(token,
             (sessionInfo) => {
-                // TODO: Add new nuzlocke
+                var n = {
+                    "user": sessionInfo.user.username,
+                    "nuzlockes": []
+                }
             },
             (err) => res.json({
                 err

@@ -1,6 +1,22 @@
 const databaseUrl = process.env.DATA_NUZLOCKE_PLANNER;
 const dbName = databaseUrl.split("/").pop();
+var mongo = require('mongodb');
+var mongoClient = mongo.MongoClient;
 
+var NuzlockePlannerError = function (message, error) {
+    Error.call(this, message);
+    if(Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
+    this.name = 'NuzlockePlannerError';
+    this.message = message;
+    if (error) this.inner = error;
+};
+  
+NuzlockePlannerError.prototype = Object.create(Error.prototype);
+NuzlockePlannerError.prototype.constructor = NuzlockePlannerError;
+  
+  
 var mongoClient = require('mongodb').MongoClient;
 
 function connect (happy, error) {
@@ -16,13 +32,24 @@ function connect (happy, error) {
 function listNuzlockes(user, onSuccess, onError) {
     connect(
         (db) => {
-            var collection = db.collection("nuzlockes");
-            collection.find({user: user}).project({ "user": 0, "nuzlockes.pokemon": 0 }).toArray(
+            var collection = db.collection("users");
+            collection.findOne({user: user},
                 (err, result) => {
-                    if(err)
+                    if(err) {
                         onError(err);
-                    else
-                        onSuccess(result[0]);
+                    } else {
+                        for (var i = 0; i < result.nuzlockes.length; i++)
+                            result.nuzlockes[i] = new mongo.ObjectID(result.nuzlockes[i]);
+                            
+                        db.collection("nuzlockes").find({ "_id" : {
+                            $in: result.nuzlockes
+                        }}).toArray((err, res) => {
+                            if(err)
+                                onError(err);
+                            else
+                                onSuccess(res);
+                        });
+                    }
                 }
             );
         },
@@ -32,19 +59,32 @@ function listNuzlockes(user, onSuccess, onError) {
 
 
 function addNuzlocke(user, nuzlocke, onSuccess, onError) {
-    connect(
-        (db) => {
-           // TODO
-        },
-        onError 
-    );
+    if (nuzlocke.hasOwnProperty("trainer_name") &&
+        nuzlocke.hasOwnProperty("generation") &&
+        nuzlocke.hasOwnProperty("game")) {
+        connect(
+            (db) => {
+
+                db.collection("nuzlockes").insertOne(nuzlocke, function(err, res) {
+                    if (err) {
+                        onError(err);
+                    } else {
+                        onSuccess();
+                    }
+                  });
+            },
+            onError 
+        );
+    } else {
+        onError(new NuzlockePlannerError("Properties missing"));
+    }
 }
 
 
-function deleteNuzlocke(user, nuzlockeId, onSuccess, onError) {
+function deleteNuzlocke(user, nuzlockesId, onSuccess, onError) {
     connect(
         (db) => {
-           // TODO
+           db.collection("nuzlockes").findOne({ user: user, _id: nuzlockesId })
         },
         onError 
     );
