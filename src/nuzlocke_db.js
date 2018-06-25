@@ -1,55 +1,63 @@
 const databaseUrl = process.env.DATA_NUZLOCKE_PLANNER;
+const dbName = databaseUrl.split("/").pop();
+
 var mongoClient = require('mongodb').MongoClient;
 
-function listNuzlockes(userId, onSuccess, onError) {
-    mongoClient.connect(url, function (err, db) {
+function connect (happy, error) {
+    mongoClient.connect(databaseUrl, function (err, db) {
         if (err) {
-            onError(err);
+            error(err);
         } else {
-            // TODO: Get nuzlockes
-            onSuccess(db);
-            db.close();
+            happy(db.db(dbName));
         }
     });
 }
 
-
-function addNuzlocke(userId, nuzlocke, onSuccess, onError) {
-    mongoClient.connect(url, function (err, db) {
-        if (err) {
-            onError(err);
-        } else {
-            // TODO: Add nuzlocke
-            onSuccess(db);
-            db.close();
-        }
-    });
+function listNuzlockes(user, onSuccess, onError) {
+    connect(
+        (db) => {
+            var collection = db.collection("nuzlockes");
+            collection.find({user: user}).project({ "user": 0, "nuzlockes.pokemon": 0 }).toArray(
+                (err, result) => {
+                    if(err)
+                        onError(err);
+                    else
+                        onSuccess(result[0]);
+                }
+            );
+        },
+        onError 
+    );
 }
 
 
-function deleteNuzlocke(userId, nuzlockeId, onSuccess, onError) {
-    mongoClient.connect(url, function (err, db) {
-        if (err) {
-            onError(err);
-        } else {
-            // TODO: Delete nuzlocke
-            onSuccess(db);
-            db.close();
-        }
-    });
+function addNuzlocke(user, nuzlocke, onSuccess, onError) {
+    connect(
+        (db) => {
+           // TODO
+        },
+        onError 
+    );
 }
 
 
-function getNuzlocke(userId, nuzlockeId, onSuccess, onError) {
-    mongoClient.connect(url, function (err, db) {
-        if (err) {
-            onError(err);
-        } else {
-            // TODO: Obtain a nuzlocke
-            onSuccess(db);
-            db.close();
-        }
-    });
+function deleteNuzlocke(user, nuzlockeId, onSuccess, onError) {
+    connect(
+        (db) => {
+           // TODO
+        },
+        onError 
+    );
+}
+
+
+function getNuzlocke(user, nuzlockeId, onSuccess, onError) {
+    connect(
+        (db) => {
+           // TODO
+        },
+        onError 
+    );
 }
 
 exports.list = listNuzlockes;

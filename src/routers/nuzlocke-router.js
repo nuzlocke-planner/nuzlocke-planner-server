@@ -1,12 +1,11 @@
-var router = require("express").Router();
+var nuzlockeDb = require("../nuzlocke_db");
 
-function nuzlocke_router(users) {
-
-    router.get(':username/nuzlockes/', users.getToken, (req, res) => {
+function nuzlocke_router(app, users) {
+    app.get('/nuzlocke/', users.getToken, (req, res) => {
         const token = req.token;
         users.verifyToken(token,
             (sessionInfo) => {
-                // TODO: Return created nuzlockes
+                nuzlockeDb.list(sessionInfo.user.username, (nuz) => res.json({nuz}), (err) => {throw err;});
             },
             (err) => res.json({
                 err
@@ -15,7 +14,7 @@ function nuzlocke_router(users) {
 
     });
 
-    router.post(':username/nuzlockes/', users.getToken, (req, res) => {
+    app.post('/nuzlocke/', users.getToken, (req, res) => {
         const token = req.token;
         users.verifyToken(token,
             (sessionInfo) => {
@@ -27,8 +26,6 @@ function nuzlocke_router(users) {
         );
 
     });
-
-    return router;
 }
 
 exports.nuzlocke_router = nuzlocke_router;

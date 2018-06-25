@@ -1,5 +1,3 @@
-var router = require("express").Router();
-
 // To generate the user id, any kind of id is valid, but it must be unique
 function hash(s) {
     return s.split("")
@@ -9,13 +7,13 @@ function hash(s) {
         }, 0);
 }
 
-function usersRouter(users) {
+function usersRouter(app, users) {
     // Override password validation
     users.options.passwordValidation = (pass) => pass.length > 9 && pass.match(/[a-z]/i);
     users.options.passwordValidationErrMessage = 'Password must be larger than 9 characters and include at least one letter';
 
     // Register new user
-    router.post('/auth/signup', (req, res) => {
+    app.post('/auth/signup', (req, res) => {
         if (req.body.username) {
             // Use the ID that you prefer, this case will be using username hash
             const usernameHash = hash(req.body.username);
@@ -47,7 +45,7 @@ function usersRouter(users) {
     });
 
     // Get user info
-    router.get('/auth/user/:username', (req, res) => {
+    app.get('/auth/user/:username', (req, res) => {
         users.getUser(hash(req.params.username),
             (user) => res.json({ user }), 
             (err) => res.json({ err })
@@ -55,11 +53,11 @@ function usersRouter(users) {
     });
 
     // Get user info
-    router.post('/auth/login', (req, res) => {
+    app.post('/auth/login', (req, res) => {
         if (req.body.username && req.body.password) {
             users.login(hash(req.body.username), 
                 req.body.password, 
-                "30s",
+                "1000s",
                 (token) => res.json({ token }), 
                 (err) => res.json({ err })
             );
@@ -70,7 +68,7 @@ function usersRouter(users) {
 
     // Delete user
     // Middle function to get the token
-    router.delete('/auth/delete', users.getToken, (req, res) => {
+    app.delete('/auth/delete', users.getToken, (req, res) => {
         if (req.body.username) {
             const token = req.token;
             const userId = hash(req.body.username);
@@ -96,8 +94,6 @@ function usersRouter(users) {
             res.json({ msg: 'No username specified' });
         }
     });
-
-    return router;
 }
 
 exports.usersRouter = usersRouter;

@@ -23,8 +23,6 @@ function usersManagementConnection ( ) {
 function nuzlockePlannerDataConnection (onSuccess, onError) {
     var url = process.env.DATA_NUZLOCKE_PLANNER;
 
-    console.log(url);
-
     mongoClient.connect(url, function(err, db) {
       if (err) {
           onError(err);

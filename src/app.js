@@ -3,6 +3,7 @@ var express = require("express"),
     app = express(),
     bodyParser  = require("body-parser"),
     usersRouter = require("./routers/users-router.js"),
+    nuzlockeRouter = require("./routers/nuzlocke-router"),
     databaseConnection = require("./database_connections");
 
     
@@ -15,7 +16,8 @@ databaseConnection.nuzlockePlannerDataConnection(
     (err) => { throw err; }
 );
 // Set the routers
-app.use(usersRouter.usersRouter(users));
+usersRouter.usersRouter(app, users);
+nuzlockeRouter.nuzlocke_router(app, users);
 
 // Listening...
 app.listen(3000, function () {
