@@ -29,13 +29,13 @@ function nuzlocke_router(app, users, nuzlockeDb) {
                         game: req.body.game,
                         trainer_name: req.body.trainer_name
                     },
-                    () => {
-                        log("Nuzlocke successful added by " + sessionInfo.user.username);
-                        res.json({status: 200, message: "Nuzlocke successfully added."})
+                    (added) => {
+                        log("Nuzlocke successfully added by " + sessionInfo.user.username);
+                        res.json({status: 200, message: "Nuzlocke " + added._id + " successfully added.", added});
                     } ,
                     (err) => {
                         log(err);
-                        res.json({ status: 400, message: err })
+                        res.json({ status: 500, message: err })
                     } 
                 );
             },

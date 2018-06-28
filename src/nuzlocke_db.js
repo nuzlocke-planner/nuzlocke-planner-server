@@ -67,8 +67,10 @@ function addNuzlocke(user, nuzlocke, onSuccess, onError) {
                         (err, res) => {
                             if (err)
                                 onError(err)
-                            else
-                                onSuccess();
+                            else {
+                                nuzlocke._id = id;
+                                onSuccess(nuzlocke);
+                            }
                         });
                     }
                   });
