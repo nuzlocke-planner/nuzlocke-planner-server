@@ -1,6 +1,7 @@
 const databaseUrl = process.env.DATA_NUZLOCKE_PLANNER;
 const dbName = databaseUrl.split("/").pop();
 var mongo = require('mongodb');
+var mongoObjectId = require('mongodb').ObjectID;
 var mongoClient = mongo.MongoClient;
 
 var NuzlockePlannerError = function (message, error) {
@@ -17,7 +18,13 @@ NuzlockePlannerError.prototype = Object.create(Error.prototype);
 NuzlockePlannerError.prototype.constructor = NuzlockePlannerError;
   
   
-var mongoClient = require('mongodb').MongoClient;
+function mapToObjectID(ids) {
+    var result = [];
+    for (var i = 0; i < ids.length; i++)
+        result[i] = new mongoObjectId(ids[i]);
+
+    return result;
+}
 
 function connect (happy, error) {
     mongoClient.connect(databaseUrl, function (err, db) {
@@ -38,9 +45,7 @@ function listNuzlockes(user, onSuccess, onError) {
                     if(err) {
                         onError(err);
                     } else {
-                        for (var i = 0; i < result.nuzlockes.length; i++)
-                            result.nuzlockes[i] = new mongo.ObjectID(result.nuzlockes[i]);
-                            
+                        result.nuzlockes = mapToObjectID(result.nuzlockes);
                         db.collection("nuzlockes").find({ "_id" : {
                             $in: result.nuzlockes
                         }}).toArray((err, res) => {
@@ -62,14 +67,22 @@ function addNuzlocke(user, nuzlocke, onSuccess, onError) {
     if (nuzlocke.hasOwnProperty("trainer_name") &&
         nuzlocke.hasOwnProperty("generation") &&
         nuzlocke.hasOwnProperty("game")) {
+        nuzlocke.pokemon = [];
+        nuzlocke.team = [];
         connect(
             (db) => {
-
                 db.collection("nuzlockes").insertOne(nuzlocke, function(err, res) {
                     if (err) {
                         onError(err);
                     } else {
-                        onSuccess();
+                        var id = res.insertedId;
+                        db.collection("users").updateOne({ user:user }, { $push: { nuzlockes: id }}, 
+                        (err, res) => {
+                            if (err)
+                                onError(err)
+                            else
+                                onSuccess();
+                        });
                     }
                   });
             },
@@ -82,13 +95,46 @@ function addNuzlocke(user, nuzlocke, onSuccess, onError) {
 
 
 function deleteNuzlocke(user, nuzlockesId, onSuccess, onError) {
+    nuzlockesId = new mongoObjectId(nuzlockesId);
     connect(
         (db) => {
-           db.collection("nuzlockes").findOne({ user: user, _id: nuzlockesId })
+           db.collection("nuzlockes").deleteOne({ _id: nuzlockesId }, 
+            (err, res) => {
+                if (err) {
+                    onError(err);
+                } else {
+                    db.collection("users").updateOne({ user:user }, { $pull: { nuzlockes: nuzlockesId }},
+                    (err, res) => {
+                        if (err) {
+                            onError(err);
+                        } else {
+                            onSuccess();
+                        }                
+                    });
+                }
+            });
         },
         onError 
     );
 }
+
+function getNuzlockeUser(nuzlockeId, onSuccess, onError) {
+    connect(
+        (db) => {
+            var collection = db.collection("users");
+            collection.findOne({nuzlockes: { $all: [new mongoObjectId(nuzlockeId)]} },
+                (err, result) => {
+                    if(err) {
+                        onError(err);
+                    } else {
+                        onSuccess(result);
+                    }
+                }
+            );
+        },
+        onError 
+    );
+}   
 
 
 function getNuzlocke(user, nuzlockeId, onSuccess, onError) {
@@ -103,4 +149,5 @@ function getNuzlocke(user, nuzlockeId, onSuccess, onError) {
 exports.list = listNuzlockes;
 exports.add = addNuzlocke;
 exports.get = getNuzlocke;
+exports.getNuzlockeUser = getNuzlockeUser;
 exports.delete = deleteNuzlocke;
