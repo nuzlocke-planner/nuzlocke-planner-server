@@ -1,7 +1,7 @@
 var users = require("./users-management/users-management-redis"),
     mongoClient = require('mongodb').MongoClient;
 
-function usersManagementConnection ( ) {
+function usersManagementConnection (onSuccess, onError) {
     // Get credentials from connection string
     var conString = process.env.USER_MANAGEMENT_NUZLOCKE_PLANNER.replace('redis://', '');
 
@@ -13,9 +13,7 @@ function usersManagementConnection ( ) {
     };
 
     // Create redis client
-    users.initRedisClient(credentials, 
-        () => console.log("Redis database is up."), 
-        (err) => console.log(err));
+    users.initRedisClient(credentials, onSuccess, onError);
     
     return users;
 }

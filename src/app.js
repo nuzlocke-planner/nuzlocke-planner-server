@@ -2,18 +2,23 @@
 var express = require("express"),
     app = express(),
     bodyParser  = require("body-parser"),
-    usersRouter = require("./routers/users-router.js"),
-    nuzlockeRouter = require("./routers/nuzlocke-router"),
+    usersRouter = require("./routers/users_router"),
+    nuzlockeRouter = require("./routers/nuzlocke_router"),
     databaseConnection = require("./database_connections"),
-    nuzlockeDb = require("´./nuzlocke_db");
+    nuzlockeDb = require("./nuzlocke_db"),
+    log = require("./utils").log;
 
     
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-var users = databaseConnection.usersManagementConnection( );
+var users = databaseConnection.usersManagementConnection( 
+    () => log("Users manager REDIS DB is up."), 
+    (err) => { throw err; }
+);
+
 databaseConnection.nuzlockePlannerDataConnection(
-    (db) => console.log("Connected to database: Nuzlocke Planer Data" ), 
+    (db) => log("Connected to database: Nuzlocke Planer Data" ), 
     (err) => { throw err; }
 );
 
@@ -23,5 +28,5 @@ nuzlockeRouter.nuzlocke_router(app, users, nuzlockeDb);
 
 // Listening...
 app.listen(3000, function () {
-    console.log("Node server running on http://localhost:3000");
+    log("Node server running on http://localhost:3000");
 });

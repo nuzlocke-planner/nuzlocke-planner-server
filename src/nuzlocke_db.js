@@ -3,21 +3,8 @@ const dbName = databaseUrl.split("/").pop();
 var mongo = require('mongodb');
 var mongoObjectId = require('mongodb').ObjectID;
 var mongoClient = mongo.MongoClient;
+var NuzlockePlannerError = require("./lib/NuzlockePlannerError");
 
-var NuzlockePlannerError = function (message, error) {
-    Error.call(this, message);
-    if(Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-    this.name = 'NuzlockePlannerError';
-    this.message = message;
-    if (error) this.inner = error;
-};
-  
-NuzlockePlannerError.prototype = Object.create(Error.prototype);
-NuzlockePlannerError.prototype.constructor = NuzlockePlannerError;
-  
-  
 function mapToObjectID(ids) {
     var result = [];
     for (var i = 0; i < ids.length; i++)
