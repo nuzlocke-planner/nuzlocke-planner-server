@@ -42,7 +42,7 @@ function register(userId, user, callback) {
             client.exists(userId, (err, reply) => {
                 if (reply === 1 || err) {
                     // User already exists
-                    callback(new NotExistError("User does not exist."));
+                    callback(new UserManagementError("User already exist."));
                 } else {
                     // New user to register
                     client.hmset(userId, user);
@@ -107,7 +107,7 @@ function login(userId, password, expiresIn, onSucced, onError) {
                     if (err) {
                         onError(new RedisError(err));
                     } else {
-                        onSucced(token);
+                        onSucced(token, user);
                     }
                 });
             } else {

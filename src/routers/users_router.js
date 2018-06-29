@@ -1,3 +1,5 @@
+var log = require("../utils").log;
+
 // To generate the user id, any kind of id is valid, but it must be unique
 function hash(s) {
     return s.split("")
@@ -14,12 +16,15 @@ function usersRouter(app, users) {
 
     // Register new user
     app.post('/auth/signup', (req, res) => {
-        if (req.body.username) {
+        if (req.body.username && req.body.password && req.body.name && req.body.surname && req.body.email) {
             // Use the ID that you prefer, this case will be using username hash
             const usernameHash = hash(req.body.username);
             var user = {
                 'username': req.body.username,
-                'password': req.body.password
+                'password': req.body.password,
+                'name': req.body.name,
+                'surname': req.body.surname,
+                'email': req.body.email
             };
 
             // Register new user
@@ -30,24 +35,28 @@ function usersRouter(app, users) {
                         msg: 'New user registerd',
                         id: usernameHash
                     });
+                    log("New user " + usernameHash + " - " + req.body.username + " registered");
                 } else {
                     res.json({
                         error: err,
                         msg: msg
                     });
+                    log("ERROR: Database error registering a user: " + err);
                 }
             });
         } else {
             res.json({
-                msg: 'No username specified'
+                status: 400,
+                msg: 'Missing some properties'
             });
+            log("ERROR: Missing values for the register");
         }
     });
 
     // Get user info
     app.get('/auth/user/:username', (req, res) => {
         users.getUser(hash(req.params.username),
-            (user) => res.json({ user }), 
+            (user) => res.json({ username: user.username, name: user.name, surname: user.surname, email: user.email }), 
             (err) => res.json({ err })
         );
     });
@@ -58,11 +67,19 @@ function usersRouter(app, users) {
             users.login(hash(req.body.username), 
                 req.body.password, 
                 "1000s",
-                (token) => res.json({ token }), 
-                (err) => res.json({ err })
+                (token, user) => {
+                   // console.log(user);
+                    res.json({ user, token });
+                    log("User " + user.username + " logged in successfully."); 
+                }, 
+                (err) => {
+                    res.json({ err });
+                    log("ERROR: " + err); 
+                }
             );
         } else {
             res.json({ err: 'Password and username are mandatory.' });
+            log("ERROR: Missing values on login"); 
         }
     });
 
