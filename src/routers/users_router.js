@@ -100,26 +100,30 @@ function usersRouter(app, users, nuzlockeDb) {
 
     // Delete user
     // Middle function to get the token
-    app.delete('/auth/delete', users.getToken, (req, res) => {
+    app.get('/auth/delete/:username',  (req, res) => {
         if (req.body.username) {
             const token = req.token;
             const userId = hash(req.body.username);
-            users.verifyToken(token,
-                (sessionInfo) => {
-                    users.getUser(userId, 
-                        (user) => {
-                            if (sessionInfo.user.username === user.username) {
-                                users.deleteUser(userId,
-                                    (msg) => res.json({ msg }),
-                                    (err) => res.json({ err })
-                                );
-                            } else {
-                                res.json({ error: "You cannot delete other users" });
-                            }
-                        },
-                        (err) => res.json({ err })
-                    )
-                },
+            // users.verifyToken(token,
+            //     (sessionInfo) => {
+            //         users.getUser(userId, 
+            //             (user) => {
+            //                 if (sessionInfo.user.username === user.username) {
+            //                     users.deleteUser(userId,
+            //                         (msg) => res.json({ msg }),
+            //                         (err) => res.json({ err })
+            //                     );
+            //                 } else {
+            //                     res.json({ error: "You cannot delete other users" });
+            //                 }
+            //             },
+            //             (err) => res.json({ err })
+            //         )
+            //     },
+            //     (err) => res.json({ err })
+            // );
+            users.deleteUser(hash(req.params.username),
+                (msg) => res.json({ msg }),
                 (err) => res.json({ err })
             );
         } else {
