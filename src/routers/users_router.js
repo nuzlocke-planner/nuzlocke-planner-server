@@ -9,7 +9,7 @@ function hash(s) {
         }, 0);
 }
 
-function usersRouter(app, users) {
+function usersRouter(app, users, nuzlockeDb) {
     // Override password validation
     users.options.passwordValidation = (pass) => pass.length > 9 && pass.match(/[a-z]/i);
     users.options.passwordValidationErrMessage = 'Password must be larger than 9 characters and include at least one letter';
@@ -30,12 +30,27 @@ function usersRouter(app, users) {
             // Register new user
             users.register(usernameHash, user, (err, msg) => {
                 if (!err) {
-                    res.json({
-                        status: 200,
-                        msg: 'New user registerd',
-                        id: usernameHash
-                    });
-                    log("New user " + usernameHash + " - " + req.body.username + " registered");
+                    nuzlockeDb.addUser(user.username, 
+                        (result) => {
+                            log("New user " + usernameHash + " - " + req.body.username + " registered");
+                            log("User " + result + " - " + req.body.username + " added on nuzlocke database registered.") 
+                            res.json({
+                                status: 200,
+                                msg: 'New user registerd',
+                                id: usernameHash
+                            });
+                        },
+                        (err) => {
+                            res.json({
+                                error: err,
+                            });
+                            log("ERROR: Cannot add user " + user.username + " at nuzlockes database.");
+                            users.deleteUser(hash(user.username),
+                                (msg) => log("Deleted user " + user.username + " becacuse it cannot be inserted on nuzlockdb"),
+                                (err) => log("ERROR: Inconsistent data. Look yout data looking for user " + user.usuername)
+                            );
+                        }
+                    );
                 } else {
                     res.json({
                         error: err,

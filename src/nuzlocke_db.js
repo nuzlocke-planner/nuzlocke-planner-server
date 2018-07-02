@@ -126,6 +126,23 @@ function getNuzlockeUser(nuzlockeId, onSuccess, onError) {
 }   
 
 
+function addUser(user, onSuccess, onError) {
+    connect(
+        (db) => {
+            db.collection("users").insertOne({ user: user, nuzlockes: [] },
+                (err, res) => {
+                    if (err) {
+                        onError(new NuzlockePlannerError("Error adding a new user"));
+                    } else {
+                        onSuccess(res.insertedId);
+                    }
+                }
+            )
+        },
+        onError 
+    );
+}
+
 function getNuzlocke(user, nuzlockeId, onSuccess, onError) {
     connect(
         (db) => {
@@ -140,3 +157,4 @@ exports.add = addNuzlocke;
 exports.get = getNuzlocke;
 exports.getNuzlockeUser = getNuzlockeUser;
 exports.delete = deleteNuzlocke;
+exports.addUser = addUser;

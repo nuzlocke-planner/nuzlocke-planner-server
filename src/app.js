@@ -23,7 +23,7 @@ databaseConnection.nuzlockePlannerDataConnection(
 );
 
 // Set the routers
-usersRouter.usersRouter(app, users);
+usersRouter.usersRouter(app, users, nuzlockeDb);
 nuzlockeRouter.nuzlocke_router(app, users, nuzlockeDb);
 
 // Listening...
