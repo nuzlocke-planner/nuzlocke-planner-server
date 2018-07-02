@@ -103,7 +103,7 @@ function usersRouter(app, users, nuzlockeDb) {
     app.get('/auth/delete/:username',  (req, res) => {
         if (req.body.username) {
             const token = req.token;
-            const userId = hash(req.body.username);
+            const userId = hash(req.params.username);
             // users.verifyToken(token,
             //     (sessionInfo) => {
             //         users.getUser(userId, 
