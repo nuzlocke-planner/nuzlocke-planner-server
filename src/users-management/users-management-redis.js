@@ -4,6 +4,7 @@ const NotExistError = require("./lib/NotExistError");
 const InvalidCredentialsError = require("./lib/InvalidCredentialsError");
 const RedisError = require("./lib/RedisError");
 const crypto = require("crypto");
+const UserManagementError = require("./lib/UserManagementError");
 
 var secretKey;
 
