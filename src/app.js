@@ -27,6 +27,6 @@ usersRouter.usersRouter(app, users, nuzlockeDb);
 nuzlockeRouter.nuzlocke_router(app, users, nuzlockeDb);
 
 // Listening...
-app.listen(3000, function () {
-    log("Node server running on http://localhost:3000");
+app.listen(process.env.PORT || 3000, function () {
+    log("App listening...")
 });
