@@ -83,8 +83,7 @@ function usersRouter(app, users, nuzlockeDb) {
                 req.body.password, 
                 "1000s",
                 (token, user) => {
-                   // console.log(user);
-                    res.json({ user, token });
+                    res.json({ user, token, timeout: 1000000 });
                     log("User " + user.username + " logged in successfully."); 
                 }, 
                 (err) => {
