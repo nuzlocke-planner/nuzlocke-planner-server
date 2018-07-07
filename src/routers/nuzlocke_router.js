@@ -29,7 +29,6 @@ function nuzlocke_router(app, users, nuzlockeDb) {
                             generation: req.body.generation,
                             name: req.body.game_name
                         }, 
-                        game: req.body.game,
                         gender: req.body.gender,
                         trainer_name: req.body.trainer_name
                     },
