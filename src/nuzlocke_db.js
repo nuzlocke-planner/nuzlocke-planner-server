@@ -32,15 +32,20 @@ function listNuzlockes(user, onSuccess, onError) {
                     if(err) {
                         onError(err);
                     } else {
-                        result.nuzlockes = mapToObjectID(result.nuzlockes);
-                        db.collection("nuzlockes").find({ "_id" : {
-                            $in: result.nuzlockes
-                        }}).toArray((err, res) => {
-                            if(err)
-                                onError(err);
-                            else
-                                onSuccess(res);
-                        });
+                        if (!result) {
+                            onError(new NuzlockePlannerError("Null result"));
+                        } else {
+                            result.nuzlockes = mapToObjectID(result.nuzlockes);
+                            db.collection("nuzlockes").find({ "_id" : {
+                                $in: result.nuzlockes
+                            }}).toArray((err, res) => {
+                                if(err)
+                                    onError(err);
+                                else
+                                    onSuccess(res);
+                            });
+                        }
+                        
                     }
                 }
             );
