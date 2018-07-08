@@ -57,7 +57,7 @@ function listNuzlockes(user, onSuccess, onError) {
 
 function addNuzlocke(user, nuzlocke, onSuccess, onError) {
     if (nuzlocke.hasOwnProperty("trainer_name") &&
-        nuzlocke.hasOwnProperty("generation") &&
+        nuzlocke.hasOwnProperty("gender") &&
         nuzlocke.hasOwnProperty("game")) {
         nuzlocke.pokemon = [];
         nuzlocke.team = [];
