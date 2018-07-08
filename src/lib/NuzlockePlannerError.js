@@ -10,4 +10,5 @@ var NuzlockePlannerError = function (message, error) {
   
 NuzlockePlannerError.prototype = Object.create(Error.prototype);
 NuzlockePlannerError.prototype.constructor = NuzlockePlannerError;
-  
+
+module.exports = NuzlockePlannerError;

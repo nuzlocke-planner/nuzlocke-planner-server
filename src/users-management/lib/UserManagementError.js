@@ -8,7 +8,7 @@ var UserManagementError = function (message, error) {
     if (error) this.inner = error;
   };
   
-  UserManagementError.prototype = Object.create(Error.prototype);
-  UserManagementError.prototype.constructor = UserManagementError;
-  
-  module.exports = UserManagementError;
+UserManagementError.prototype = Object.create(Error.prototype);
+UserManagementError.prototype.constructor = UserManagementError;
+
+module.exports = UserManagementError;
