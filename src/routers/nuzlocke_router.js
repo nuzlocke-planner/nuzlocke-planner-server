@@ -60,23 +60,23 @@ function nuzlocke_router(app, users, nuzlockeDb) {
                 nuzlockeDb.getNuzlockeUser(req.params.id, 
                 (userDoc) => {
                     if (sessionInfo.user.username === userDoc.user) {
-                        nuzlockeDb.delete(sessionInfo.user.username, req.params.nuzlocke_id,
+                        nuzlockeDb.delete(sessionInfo.user.username, req.params.id,
                         () => {
-                            log("Nuzlocke " + req.params.nuzlocke_id + " deleted successfully by " + sessionInfo.user.username);
+                            log("Nuzlocke " + req.params.id + " deleted successfully by " + sessionInfo.user.username);
                             res.json({
                                 status: 200,
                                 message: "Deleted successfully"
                             });
                         },
                         (err) => {
-                            log("Nuzlocke " + req.params.nuzlocke_id + " cannot be deleted.");
+                            log("Nuzlocke " + req.params.id + " cannot be deleted.");
                             res.json({
                                 error: err,
                                 message: "Database error"
                             });
                         });
                     } else {
-                        log("FORBIDDEN: Nuzlocke " + req.params.nuzlocke_id + " cannot be deleted by " + sessionInfo.user.username);
+                        log("FORBIDDEN: Nuzlocke " + req.params.id + " cannot be deleted by " + sessionInfo.user.username);
                         res.json({
                             error: 403,
                             message: "Forbidden"
