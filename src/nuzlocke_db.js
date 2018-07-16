@@ -134,21 +134,32 @@ function getNuzlockeUser(nuzlockeId, onSuccess, onError) {
 function catchPokemon(nuzlockeId, pokemon, onSuccess, onError) {
     if(pokemon.hasOwnProperty("dex_number") && 
         pokemon.hasOwnProperty("found_at")) {
-            connect(
-                (db) => {
-                    var collection = db.collection("nuzlockes");
-                    collection.updateOne({nuzlockes: { _id: new mongoObjectId(nuzlockeId)}}, {  $push: { pokemon: pokemon } },
-                        (err) => {
-                            if(err) {
-                                onError(err);
-                            } else {
-                                onSuccess();
-                            }
-                        }
-                    );
+            getNuzlocke(nuzlockeId, 
+                (result) => {
+                    if(containsAll(result.pokemon, team)){
+                        connect(
+                            (db) => {
+                                var collection = db.collection("nuzlockes");
+                                collection.updateOne({nuzlockes: { _id: new mongoObjectId(nuzlockeId)}}, {  $push: { pokemon: pokemon } },
+                                    (err) => {
+                                        if(err) {
+                                            onError(err);
+                                        } else {
+                                            onSuccess();
+                                        }
+                                    }
+                                );
+                            },
+                            onError 
+                        );
+                    } else {
+                        onError(new NuzlockePlannerError("Invalid team"));
+                    }
+                   
                 },
-                onError 
+                onError
             );
+            
     } else {
         onError(new NuzlockePlannerError("Properties missing"));
     }
