@@ -131,6 +131,57 @@ function getNuzlockeUser(nuzlockeId, onSuccess, onError) {
 }   
 
 
+function catchPokemon(nuzlockeId, pokemon, onSuccess, onError) {
+    if(pokemon.hasOwnProperty("dex_number") && 
+        pokemon.hasOwnProperty("found_at")) {
+            connect(
+                (db) => {
+                    var collection = db.collection("nuzlockes");
+                    collection.updateOne({nuzlockes: { _id: new mongoObjectId(nuzlockeId)}}, {  $push: { pokemon: pokemon } },
+                        (err) => {
+                            if(err) {
+                                onError(err);
+                            } else {
+                                onSuccess();
+                            }
+                        }
+                    );
+                },
+                onError 
+            );
+    } else {
+        onError(new NuzlockePlannerError("Properties missing"));
+    }
+}
+
+function updateTeam(nuzlockeId, team, onSuccess, onError) {
+    getNuzlocke(nuzlockeId, 
+        (result) => {
+            if(containsAll(result.pokemon, team)){
+                connect(
+                    (db) => {
+                        var collection = db.collection("nuzlockes");
+                        collection.updateOne({nuzlockes: { _id: new mongoObjectId(nuzlockeId)}}, { team: team },
+                            (err) => {
+                                if(err) {
+                                    onError(err);
+                                } else {
+                                    onSuccess();
+                                }
+                            }
+                        );
+                    },
+                    onError 
+                );
+            } else {
+                onError(new NuzlockePlannerError("Invalid team"));
+            }
+           
+        },
+        onError
+    );
+}
+
 function addUser(user, onSuccess, onError) {
     connect(
         (db) => {
@@ -148,13 +199,31 @@ function addUser(user, onSuccess, onError) {
     );
 }
 
-function getNuzlocke(user, nuzlockeId, onSuccess, onError) {
+function getNuzlocke(nuzlockeId, onSuccess, onError) {
     connect(
         (db) => {
-           // TODO
+            var collection = db.collection("nuzlockes");
+            collection.findOne({_id: new mongoObjectId(nuzlockeId)},
+                (err, result) => {
+                    if(err) {
+                        onError(err);
+                    } else {
+                        onSuccess(result);
+                    }
+                }
+            );
         },
         onError 
     );
+}
+
+// Array1 contains all the elements in array2
+function containsAll(array1, array2) {
+    for(let i = 0; i < array2.length; i++) {
+        if (!array1.includes(array2[i]))
+            return false;
+    }
+    return true;
 }
 
 exports.list = listNuzlockes;
@@ -163,3 +232,5 @@ exports.get = getNuzlocke;
 exports.getNuzlockeUser = getNuzlockeUser;
 exports.delete = deleteNuzlocke;
 exports.addUser = addUser;
+exports.catchPokemon = catchPokemon;
+exports.switchTeam = updateTeam;
