@@ -214,12 +214,12 @@ function deleteUser(user, onSuccess, onError) {
     connect(
         (db) => {
             db.collection("users").deleteOne({ user: user },
-                (err, res) => {
+                (err) => {
                     if (err) {
                         onError(new NuzlockePlannerError("Error deleting the user"));
                     } else {
-                        db.collection("nuzlockes").delete({ user: user },
-                            (err, res) => {
+                        db.collection("nuzlockes").deleteMany({ user: user },
+                            (err) => {
                                 if (err) {
                                     onError(new NuzlockePlannerError("Error deleting the user"));
                                 } else {
