@@ -168,7 +168,7 @@ function catchPokemon(nuzlockeId, pokemon, onSuccess, onError) {
 function updateTeam(nuzlockeId, team, onSuccess, onError) {
     getNuzlocke(nuzlockeId, 
         (result) => {
-            if(containsAll(result.pokemon, team)){
+            if(containsAll(result.pokemon, team)) {
                 connect(
                     (db) => {
                         var collection = db.collection("nuzlockes");
@@ -210,6 +210,31 @@ function addUser(user, onSuccess, onError) {
     );
 }
 
+function deleteUser(user, onSuccess, onError) {
+    connect(
+        (db) => {
+            db.collection("users").deleteOne({ user: user },
+                (err, res) => {
+                    if (err) {
+                        onError(new NuzlockePlannerError("Error deleting the user"));
+                    } else {
+                        db.collection("nuzlockes").delete({ user: user },
+                            (err, res) => {
+                                if (err) {
+                                    onError(new NuzlockePlannerError("Error deleting the user"));
+                                } else {
+                                    onSuccess();
+                                }
+                            }
+                        )
+                    }
+                }
+            )
+        },
+        onError 
+    );
+}
+
 function getNuzlocke(nuzlockeId, onSuccess, onError) {
     connect(
         (db) => {
@@ -243,5 +268,6 @@ exports.get = getNuzlocke;
 exports.getNuzlockeUser = getNuzlockeUser;
 exports.delete = deleteNuzlocke;
 exports.addUser = addUser;
+exports.deleteUser = deleteUser;
 exports.catchPokemon = catchPokemon;
 exports.switchTeam = updateTeam;
