@@ -213,23 +213,33 @@ function addUser(user, onSuccess, onError) {
 function deleteUser(user, onSuccess, onError) {
     connect(
         (db) => {
-            db.collection("users").deleteOne({ user: user },
-                (err) => {
+            db.collection("users").findOne({user: user},
+                (err, result) => {
                     if(err) {
-                        onError(new NuzlockePlannerError("Error deleting the user"));
+                        onError(err);
                     } else {
-                        db.collection("nuzlockes").deleteMany({ user: user },
-                            (err) => {
-                                if (err) {
-                                    onError(new NuzlockePlannerError("Error deleting the user"));
-                                } else {
-                                    onSuccess("Nuzlockes and user deleted");
-                                }
+                        result.nuzlockes = mapToObjectID(result.nuzlockes);
+                        db.collection("nuzlockes").deleteMany({ "_id" : {
+                            $in: result.nuzlockes
+                        }},
+                        (err) => {
+                            if (err) {
+                                onError(new NuzlockePlannerError("Error deleting the user"));
+                            } else {
+                                db.collection("users").deleteOne({ user: user },
+                                (err) => {
+                                    if(err) {
+                                        onError(new NuzlockePlannerError("Error deleting the user"));
+                                    } else {
+                                        onSuccess("User and its nuzlockes deleted")
+                                    }
+                                });
                             }
-                        );
+                        });
                     }
                 }
-            )
+            );
+           
         },
         onError 
     );
