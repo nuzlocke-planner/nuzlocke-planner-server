@@ -215,18 +215,24 @@ function deleteUser(user, onSuccess, onError) {
         (db) => {
             db.collection("users").deleteOne({ user: user },
                 (err) => {
-                    if (err) {
-                        onError(new NuzlockePlannerError("Error deleting the user"));
+                    // if (err) {
+                    //     onError(new NuzlockePlannerError("Error deleting the user"));
+                    // } else {
+                    //     db.collection("nuzlockes").deleteMany({ user: user },
+                    //         (err) => {
+                    //             if (err) {
+                    //                 onError(new NuzlockePlannerError("Error deleting the user"));
+                    //             } else {
+                    //                 onSuccess();
+                    //             }
+                    //         }
+                    //     )
+                    // }
+                    if(err) {
+
                     } else {
-                        db.collection("nuzlockes").deleteMany({ user: user },
-                            (err) => {
-                                if (err) {
-                                    onError(new NuzlockePlannerError("Error deleting the user"));
-                                } else {
-                                    onSuccess();
-                                }
-                            }
-                        )
+                        onSuccess("User document deleted");
+
                     }
                 }
             )

@@ -121,10 +121,10 @@ function usersRouter(app, users, nuzlockeDb) {
             //     },
             //     (err) => res.json({ err })
             // );
-            //nuzlockeDb.deleteUser(req.params.username, () => res.json({ msg }), (err) => res.json({error: err}))
+            var onError = (err) => res.json({error: err});
             users.deleteUser(hash(req.params.username),
-                msg => res.json({ msg }),
-                err => res.json({ err })
+                msg => nuzlockeDb.deleteUser(req.params.username, (msg) => res.json({ msg }), onError),
+                onError
             );
         } else {
             res.json({ msg: 'No username specified' });
