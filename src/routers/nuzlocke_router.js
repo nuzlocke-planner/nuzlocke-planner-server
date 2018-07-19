@@ -5,7 +5,7 @@ function same_user(users, nuzlockeDb, res, nuzlocke_id, token, callback) {
         (sessionInfo) => {
             nuzlockeDb.getNuzlockeUser(nuzlocke_id, 
             (userDoc) => {
-                if (sessionInfo.user.username === userDoc.user) {
+                if (userDoc && sessionInfo.user.username === userDoc.user) {
                     callback(sessionInfo);
                 } else {
                     log("FORBIDDEN: Nuzlocke " + nuzlocke_id + " cannot be edited by " + sessionInfo.user.username);
@@ -104,11 +104,32 @@ function nuzlocke_router(app, users, nuzlockeDb) {
         });
     });
 
+    app.post('/nuzlocke/:id/team', users.getToken, (req, res) => {
+        same_user(users, nuzlockeDb, res, req.params.id, req.token, info => {
+            nuzlockeDb.updateTeam(req.params.id,  req.body.team,
+            () => {
+                log(info.user.username + " added a new pokemon " + req.body.dex_number + " to nuzlocke " +  req.params.id);
+                res.json({
+                    status: 200,
+                    message: "Team edited successfully",
+                    team: req.body.team
+                });
+            },
+            (err) => {
+                log(info.user.username + " cannot edit the team of nuzlocke " + req.params.id);
+                res.json({
+                    error: err,
+                    message: "Database error"
+                });
+            });
+        });
+    });
+
     app.delete('/nuzlocke/:id', users.getToken, (req, res) => {
         same_user(users, nuzlockeDb, res, req.params.id, req.token, info => {
-            nuzlockeDb.delete(sessionInfo.user.username, req.params.id,
+            nuzlockeDb.delete(info.user.username, req.params.id,
             () => {
-                log("Nuzlocke " + req.params.id + " deleted successfully by " + sessionInfo.user.username);
+                log("Nuzlocke " + req.params.id + " deleted successfully by " + info.user.username);
                 res.json({
                     status: 200,
                     message: "Deleted successfully"

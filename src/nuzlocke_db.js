@@ -160,24 +160,29 @@ function catchPokemon(nuzlockeId, pokemon, onSuccess, onError) {
 }
 
 function updateTeam(nuzlockeId, team, onSuccess, onError) {
-    getNuzlocke(nuzlockeId, 
-        (result, db) => {
-            if(containsAll(result.pokemon, team)) {
-                db.collection("nuzlockes").updateOne({ _id: new mongoObjectId(nuzlockeId)}, { team: team },
-                    (err) => {
-                        if(err) {
-                            onError(err);
-                        } else {
-                            onSuccess();
+    if(team) {
+        team = JSON.parse(team);
+        getNuzlocke(nuzlockeId, 
+            (result, db) => {
+                if(containsAll(result.pokemon.map(item => Number(item.dex_number)), team)) {
+                    db.collection("nuzlockes").updateOne({ _id: new mongoObjectId(nuzlockeId)}, { $set : {team: team} },
+                        (err) => {
+                            if(err) {
+                                onError(err);
+                            } else {
+                                onSuccess();
+                            }
                         }
-                    }
-                );
-            } else {
-                onError(new NuzlockePlannerError("Invalid team"));
-            }
-        },
-        onError
-    );
+                    );
+                } else {
+                    onError(new NuzlockePlannerError("Invalid team"));
+                }
+            },
+            onError
+        );
+    } else {
+        onError(new NuzlockePlannerError("No team specified"));
+    }  
 }
 
 function addUser(user, onSuccess, onError) {
@@ -267,4 +272,4 @@ exports.delete = deleteNuzlocke;
 exports.addUser = addUser;
 exports.deleteUser = deleteUser;
 exports.catchPokemon = catchPokemon;
-exports.switchTeam = updateTeam;
+exports.updateTeam = updateTeam;
