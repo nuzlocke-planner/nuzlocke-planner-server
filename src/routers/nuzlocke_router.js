@@ -1,5 +1,37 @@
 const log = require("../utils").log;
 
+function same_user(users, nuzlockeDb, res, nuzlocke_id, token, callback) {
+    users.verifyToken(token,
+        (sessionInfo) => {
+            nuzlockeDb.getNuzlockeUser(nuzlocke_id, 
+            (userDoc) => {
+                if (sessionInfo.user.username === userDoc.user) {
+                    callback(sessionInfo);
+                } else {
+                    log("FORBIDDEN: Nuzlocke " + nuzlocke_id + " cannot be edited by " + sessionInfo.user.username);
+                    res.json({
+                        error: 403,
+                        message: "Forbidden"
+                    });
+                }
+            },
+            (err) => {
+                res.json({
+                    error: err,
+                    message: "Database error"
+                });
+                log("Cannot get the user of nuzlocke " + nuzlocke_id);
+            })
+        },
+        (err) => {
+            res.json({
+                status: 403,
+                message: "Forbidden"
+            });
+        }
+    );
+}
+
 function nuzlocke_router(app, users, nuzlockeDb) {
     app.get('/nuzlocke/', users.getToken, (req, res) => {
         const token = req.token;
@@ -52,53 +84,44 @@ function nuzlocke_router(app, users, nuzlockeDb) {
         );
     });
 
-    app.delete('/nuzlocke/:id', users.getToken, (req, res) => {
-        const token = req.token;
-        
-        users.verifyToken(token,
-            (sessionInfo) => {
-                nuzlockeDb.getNuzlockeUser(req.params.id, 
-                (userDoc) => {
-                    if (sessionInfo.user.username === userDoc.user) {
-                        nuzlockeDb.delete(sessionInfo.user.username, req.params.id,
-                        () => {
-                            log("Nuzlocke " + req.params.id + " deleted successfully by " + sessionInfo.user.username);
-                            res.json({
-                                status: 200,
-                                message: "Deleted successfully"
-                            });
-                        },
-                        (err) => {
-                            log("Nuzlocke " + req.params.id + " cannot be deleted.");
-                            res.json({
-                                error: err,
-                                message: "Database error"
-                            });
-                        });
-                    } else {
-                        log("FORBIDDEN: Nuzlocke " + req.params.id + " cannot be deleted by " + sessionInfo.user.username);
-                        res.json({
-                            error: 403,
-                            message: "Forbidden"
-                        });
-                    }
-                },
-                (err) => {
-                    res.json({
-                        error: err,
-                        message: "Database error"
-                    });
-                    log("Cannot get the user of nuzlocke " + req.params.nuzlocke_id);
-                })
+    app.post('/nuzlocke/:id/catch', users.getToken, (req, res) => {
+        same_user(users, nuzlockeDb, res, req.params.id, req.token, info => {
+            nuzlockeDb.catchPokemon(req.params.id,  { dex_number: req.body.dex_number, found_at:  req.body.found_at},
+            () => {
+                log(info.user.username + " added a new pokemon " + req.body.dex_number + " to nuzlocke " +  req.params.id);
+                res.json({
+                    status: 200,
+                    message: "Pokemon added successfully"
+                });
             },
             (err) => {
+                log(info.user.username + " cannot add the pokemon " + req.body.dex_number + " to nuzlocke " + req.params.id);
                 res.json({
-                    status: 403,
-                    message: "Forbidden"
+                    error: err,
+                    message: "Database error"
                 });
-                log("FORBIDDEN: Cannot delete any nuzlocke");
-            }
-        );
+            });
+        });
+    });
+
+    app.delete('/nuzlocke/:id', users.getToken, (req, res) => {
+        same_user(users, nuzlockeDb, res, req.params.id, req.token, info => {
+            nuzlockeDb.delete(sessionInfo.user.username, req.params.id,
+            () => {
+                log("Nuzlocke " + req.params.id + " deleted successfully by " + sessionInfo.user.username);
+                res.json({
+                    status: 200,
+                    message: "Deleted successfully"
+                });
+            },
+            (err) => {
+                log("Nuzlocke " + req.params.id + " cannot be deleted.");
+                res.json({
+                    error: err,
+                    message: "Database error"
+                });
+            });
+        });
     });
 }
 
