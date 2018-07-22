@@ -12,6 +12,7 @@ var express = require("express"),
 app.use(bodyParser.urlencoded({
   extended: false
 }));
+
 app.use(bodyParser.json());
 
 var users = databaseConnection.usersManagementConnection(

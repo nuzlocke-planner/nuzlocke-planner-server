@@ -60,7 +60,8 @@ function nuzlocke_router(app, users, nuzlockeDb) {
           sessionInfo.user.username, {
             game: {
               generation: req.body.generation,
-              name: req.body.game_name
+              name: req.body.game_name,
+              version_group: req.body.version_group,
             },
             gender: req.body.gender,
             trainer_name: req.body.trainer_name
