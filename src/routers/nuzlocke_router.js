@@ -116,6 +116,29 @@ function nuzlocke_router(app, users, nuzlockeDb) {
     });
   });
 
+  app.delete('/nuzlocke/:id/catch', users.getToken, (req, res) => {
+    same_user(users, nuzlockeDb, res, req.params.id, req.token, info => {
+      nuzlockeDb.catchPokemon(req.params.id, {
+          dex_number: req.body.dex_number,
+          found_at: req.body.found_at
+        },
+        () => {
+          log(info.user.username + " added a new pokemon " + req.body.dex_number + " to nuzlocke " + req.params.id);
+          res.json({
+            status: 200,
+            message: "Pokemon added successfully"
+          });
+        },
+        (err) => {
+          log(info.user.username + " cannot delete the pokemon " + req.body.dex_number + " of nuzlocke " + req.params.id);
+          res.json({
+            error: err,
+            message: "Database error"
+          });
+        });
+    });
+  });
+
   app.post('/nuzlocke/:id/team', users.getToken, (req, res) => {
     same_user(users, nuzlockeDb, res, req.params.id, req.token, info => {
       nuzlockeDb.updateTeam(req.params.id, req.body.team,

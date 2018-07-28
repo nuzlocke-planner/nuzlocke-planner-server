@@ -4,6 +4,7 @@ var mongo = require('mongodb');
 var mongoObjectId = require('mongodb').ObjectID;
 var mongoClient = mongo.MongoClient;
 var NuzlockePlannerError = require("./lib/NuzlockePlannerError");
+var async = require("async");
 
 function mapToObjectID(ids) {
   var result = [];
@@ -131,25 +132,58 @@ function getNuzlockeUser(nuzlockeId, onSuccess, onError) {
 function catchPokemon(nuzlockeId, pokemon, onSuccess, onError) {
   if (pokemon.hasOwnProperty("dex_number") &&
     pokemon.hasOwnProperty("found_at")) {
-    getNuzlocke(nuzlockeId,
-      (result, db) => {
+    async.waterfall([
+      (callback) => {
+        getNuzlocke(nuzlockeId, (res, db) => callback(null, res, db), onError);
+      },
+      (result, db, callback) => {
         if (result.pokemon.filter(item => item.found_at === pokemon.found_at).length === 0) {
-          db.collection("nuzlockes").updateOne({ _id: new mongoObjectId(nuzlockeId) }, { $push: { pokemon: pokemon }},
-            (err) => {
-              if (err) {
-                onError(err);
-              } else {
-                onSuccess();
-              }
-            }
-          );
+          db.collection("nuzlockes").updateOne({ _id: new mongoObjectId(nuzlockeId) }, { $push: { pokemon: pokemon }}, (err) => callback(null, err));
         } else {
           onError(new NuzlockePlannerError("Pokemon was already caught on the location " + pokemon.found_at));
         }
       },
-      onError
-    );
+      (err) => {
+        if (err) {
+          onError(err);
+        } else {
+          onSuccess();
+        }
+      }
+    ]);
+  } else {
+    onError(new NuzlockePlannerError("Properties missing"));
+  }
+}
 
+function deletePokemon(nuzlockeId, pokemon, onSuccess, onError) {
+  if (pokemon.hasOwnProperty("dex_number") &&
+    pokemon.hasOwnProperty("found_at")) {
+    async.waterfall([
+      // Get the nuzlocke
+      (callback) => getNuzlocke(nuzlockeId, (res, db) => callback(null, res, db), onError),
+      // Delete the pokemon from the pokedex checking if it exist or not
+      (result, db, callback) => {
+        if (result.pokemon.filter(item => item.found_at === pokemon.found_at).length === 1) 
+          db.collection("nuzlockes").updateOne({ _id: new mongoObjectId(nuzlockeId) }, { $pull: { pokemon: pokemon }}, (err) => callback(null, result, db, err));
+        else
+          onError(new NuzlockePlannerError("The pokemon cannot be found"));
+      },
+      // Same as previous function but delete pokemon from the trainer's team
+      (result, db, err, callback) => {
+        if (!err && result.team.filter(item =>  item.found_at === pokemon.found_at &&  item.dex_number === pokemon.dex_number)) 
+          db.collection("nuzlockes").updateOne({ _id: new mongoObjectId(nuzlockeId) }, { $pull: { team: pokemon }}, (err) => callback(null, err))
+        else
+          callback(null, err);
+      },
+      (err) => {
+        if (err) {
+          onError(err);
+        } else {
+          onSuccess();
+        }
+      }
+    ]);
   } else {
     onError(new NuzlockePlannerError("Properties missing"));
   }
@@ -229,7 +263,6 @@ function deleteUser(user, onSuccess, onError) {
           }
         }
       );
-
     },
     onError
   );
@@ -269,4 +302,5 @@ exports.delete = deleteNuzlocke;
 exports.addUser = addUser;
 exports.deleteUser = deleteUser;
 exports.catchPokemon = catchPokemon;
+exports.deletePokemon = deletePokemon;
 exports.updateTeam = updateTeam;
