@@ -1,5 +1,6 @@
 function log(message) {
-  console.log(getDate() + " " + message);
+  if(process.env.NODE_ENV !== 'test')
+    console.log(getDate() + " " + message);
 }
 
 function getDate() {

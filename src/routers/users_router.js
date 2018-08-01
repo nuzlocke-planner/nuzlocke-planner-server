@@ -1,4 +1,5 @@
-var log = require("../utils").log;
+const log = require("../utils").log;
+const UsersCtrl = require("../controllers/users.controller");
 
 // To generate the user id, any kind of id is valid, but it must be unique
 function hash(s) {
@@ -9,7 +10,7 @@ function hash(s) {
     }, 0);
 }
 
-function usersRouter(app, users, nuzlockeDb) {
+function usersRouter(app, users) {
   // Override password validation
   users.options.passwordValidation = (pass) => pass.length > 9 && pass.match(/[a-z]/i);
   users.options.passwordValidationErrMessage = 'Password must be larger than 9 characters and include at least one letter';
@@ -30,45 +31,30 @@ function usersRouter(app, users, nuzlockeDb) {
       // Register new user
       users.register(usernameHash, user, (err, msg) => {
         if (!err) {
-          nuzlockeDb.addUser(user.username,
-            (result) => {
+          UsersCtrl.add(user.username, (err) => {
+            if (!err) {
               log("New user " + usernameHash + " - " + req.body.username + " registered");
-              log("User " + result + " - " + req.body.username + " added on nuzlocke database registered.")
-              res.json({
-                status: 200,
-                msg: 'New user registerd',
-                id: usernameHash
-              });
-            },
-            (err) => {
-              res.json({
-                error: err,
-              });
+              res.json({ status: 200, msg: 'New user registerd', id: usernameHash });
+            } else {
+              res.send(err);
               log("ERROR: Cannot add user " + user.username + " at nuzlockes database.");
               users.deleteUser(hash(user.username),
                 (msg) => log("Deleted user " + user.username + " becacuse it cannot be inserted on nuzlockdb"),
                 (err) => log("ERROR: Inconsistent data. Look yout data looking for user " + user.usuername)
               );
             }
-          );
-        } else {
-          res.json({
-            error: err,
-            msg: msg
           });
+        } else {
+          res.json({ error: err, msg: msg });
           log("ERROR: Database error registering a user: " + err);
         }
       });
     } else {
-      res.json({
-        status: 400,
-        msg: 'Missing some properties'
-      });
+      res.status(400).json({msg: 'Missing some properties'});
       log("ERROR: Missing values for the register");
     }
   });
 
-  // Get user info
   app.get('/auth/user/:username', (req, res) => {
     users.getUser(hash(req.params.username),
       (user) => res.json({
@@ -77,35 +63,23 @@ function usersRouter(app, users, nuzlockeDb) {
         surname: user.surname,
         email: user.email
       }),
-      (err) => res.json({
-        err
-      })
+      (err) => res.send(err)
     );
   });
 
-  // Get user info
   app.post('/auth/login', (req, res) => {
     if (req.body.username && req.body.password) {
-      users.login(hash(req.body.username),
-        req.body.password,
-        "1000s",
-        (token, user) => {
-          res.json({
-            user,
-            token,
-            timeout: 1000000
-          });
+      users.login(hash(req.body.username), req.body.password, "1000s", (token, user) => {
+          res.json({ user, token, timeout: 1000000 });
           log("User " + user.username + " logged in successfully. ");
         },
         (err) => {
-          res.json({
-            err
-          });
+          res.send(err);
           log("ERROR: " + err);
         }
       );
     } else {
-      res.json({
+      res.status(400).json({
         err: 'Password and username are mandatory.'
       });
       log("ERROR: Missing values on login");

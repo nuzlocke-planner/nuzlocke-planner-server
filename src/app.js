@@ -1,39 +1,31 @@
-// Entry point for the application which is using the user management system
-var express = require("express"),
-  app = express(),
-  bodyParser = require("body-parser"),
-  usersRouter = require("./routers/users_router"),
-  nuzlockeRouter = require("./routers/nuzlocke_router"),
-  databaseConnection = require("./database_connections"),
-  nuzlockeDb = require("./nuzlocke_db"),
-  log = require("./utils").log;
+var express = require('express');
+var morgan = require('morgan');
+var bodyParser = require('body-parser');
+var methodOverride = require('method-override');
+var app = express();
 
+var log = require("./utils").log;
+var usersRouter = require("./routers/users_router");
+var nuzlockeRouter = require("./routers/nuzlocke_router");
 
-app.use(bodyParser.urlencoded({
-  extended: false
-}));
+var users = require("./db-connections/users-db");
+require("./db-connections/nuzlocke-db");
 
+if (process.env.NODE_ENV !== "test")
+  app.use(morgan('dev')); // log every request to the console
+
+app.use(bodyParser.urlencoded({'extended': 'true' }));
 app.use(bodyParser.json());
+app.use(methodOverride());
 
-var users = databaseConnection.usersManagementConnection(
-  () => log("Users manager REDIS DB is up."),
-  (err) => {
-    throw err;
-  }
-);
-
-databaseConnection.nuzlockePlannerDataConnection(
-  () => log("Connected to database: Nuzlocke Planer Data"),
-  (err) => {
-    throw err;
-  }
-);
 
 // Set the routers
-usersRouter.usersRouter(app, users, nuzlockeDb);
-nuzlockeRouter.nuzlocke_router(app, users, nuzlockeDb);
+usersRouter.usersRouter(app, users);
+nuzlockeRouter.nuzlocke_router(app);
 
-// Listening...
-app.listen(process.env.PORT || 3000, function () {
-  log("App listening...")
+//Express application will listen to port mentioned in our configuration
+app.listen(process.env.PORT || 3000, () => {
+  log("Server started...");
 });
+
+module.exports = app; // for testing

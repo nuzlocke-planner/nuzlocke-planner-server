@@ -4,17 +4,29 @@
   "description": "Server for nuzlocke planer",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/app.js"
+    "test": "mocha --timeout 10000 --exit",
+    "start": "SET NODE_ENV=dev && node src/app.js",
+    "live": "nodemon src/app.js"
   },
   "author": "Guillem Orellana Trullols",
   "license": "MIT",
   "dependencies": {
     "async": "^2.6.1",
-    "body-parser": "^1.18.3",
-    "express": "^4.16.3",
+    "chai": "^4.1.2",
+    "chai-http": "^4.0.0",
     "jsonwebtoken": "^8.3.0",
+    "mocha": "^5.2.0",
     "mongodb": "^3.0.10",
-    "redis": "^2.8.0"
+    "redis": "^2.8.0",
+    "sinon": "^6.1.4",
+    "sinon-mongoose": "^2.2.1"
+  },
+  "devDependencies": {
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.4",
+    "express": "^4.16.3",
+    "method-override": "^3.0.0",
+    "mongoose": "^5.2.5",
+    "morgan": "^1.9.0"
   }
 }

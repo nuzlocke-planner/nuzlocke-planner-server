@@ -1,183 +1,59 @@
 const log = require("../utils").log;
+const NuzlockeCtrl = require("../controllers/nuzlocke.controller");
+const UsersCtrl = require("../controllers/users.controller");
+const users = require("../db-connections/users-db");
 
-function same_user(users, nuzlockeDb, res, nuzlocke_id, token, callback) {
-  users.verifyToken(token,
-    (sessionInfo) => {
-      nuzlockeDb.getNuzlockeUser(nuzlocke_id,
-        (userDoc) => {
-          if (userDoc && sessionInfo.user.username === userDoc.user) {
-            callback(sessionInfo);
-          } else {
-            log("FORBIDDEN: Nuzlocke " + nuzlocke_id + " cannot be edited by " + sessionInfo.user.username);
-            res.json({
-              error: 403,
-              message: "Forbidden"
-            });
-          }
-        },
-        (err) => {
-          res.json({
-            error: err,
-            message: "Database error"
-          });
-          log("Cannot get the user of nuzlocke " + nuzlocke_id);
-        })
-    },
-    () => {
-      res.json({
-        status: 403,
-        message: "Forbidden"
-      });
-    }
-  );
-}
-
-function nuzlocke_router(app, users, nuzlockeDb) {
-  app.get('/nuzlocke/', users.getToken, (req, res) => {
-    const token = req.token;
-    users.verifyToken(token,
-      (sessionInfo) => {
-        nuzlockeDb.list(sessionInfo.user.username,
-          (nuz) => {
-            res.json({
-              nuz
-            });
-            log("User: " + sessionInfo.user.username + " is listing its nuzlockes");
-          }, (err) => {
-            throw err;
-          });
-      },
-      (err) => res.json({ err })
-    );
-  });
-
-  app.put('/nuzlocke/', users.getToken, (req, res) => {
-    const token = req.token;
-
-    users.verifyToken(token,
-      (sessionInfo) => {
-        nuzlockeDb.add(
-          sessionInfo.user.username, {
-            game: {
-              generation: req.body.generation,
-              name: req.body.game_name,
-              version_group: req.body.version_group,
-            },
-            gender: req.body.gender,
-            trainer_name: req.body.trainer_name
-          },
-          (added) => {
-            log("Nuzlocke successfully added by " + sessionInfo.user.username);
-            res.json({
-              status: 200,
-              message: "Nuzlocke " + added._id + " successfully added.",
-              added
-            });
-          },
-          (err) => {
-            log(err);
-            res.json({
-              status: 500,
-              message: err
-            })
-          }
-        );
-      },
+function verifyUser(req, res) {
+  return new Promise(resolve => {
+    users.verifyToken(req.token,
+      (sessionInfo) => resolve(sessionInfo),
       (err) => {
-        res.json({
-          status: 403,
-          message: "Forbidden"
-        });
-        log("FORBIDDEN: Error adding a nuzlocke");
+        log("FORBIDDEN: Auth Error"); 
+        res.status(403).send(err);
       }
     );
   });
+}
 
-  app.post('/nuzlocke/:id/catch', users.getToken, (req, res) => {
-    same_user(users, nuzlockeDb, res, req.params.id, req.token, info => {
-      nuzlockeDb.catchPokemon(req.params.id, {
-          dex_number: req.body.dex_number,
-          found_at: req.body.found_at
-        },
-        () => {
-          log(info.user.username + " added a new pokemon " + req.body.dex_number + " to nuzlocke " + req.params.id);
-          res.json({
-            status: 200,
-            message: "Pokemon added successfully"
-          });
-        },
-        (err) => {
-          log(info.user.username + " cannot add the pokemon " + req.body.dex_number + " to nuzlocke " + req.params.id);
-          res.json({
-            error: err,
-            message: "Database error"
-          });
-        });
+function same_user(req, res, callback) {
+  verifyUser(req, res).then((sessionInfo) => {
+    UsersCtrl.has_nuzlocke(sessionInfo.user.username, req.params.id, (heHas) => {
+      if (heHas) {
+        callback(sessionInfo);
+      } else {
+        res.status(403).json({ message: "Forbbiden: you do not own nuzlocke " + req.params.id});
+      }
     });
   });
+}
 
-  app.delete('/nuzlocke/:id/catch', users.getToken, (req, res) => {
-    same_user(users, nuzlockeDb, res, req.params.id, req.token, info => {
-      nuzlockeDb.catchPokemon(req.params.id, {
-          dex_number: req.body.dex_number,
-          found_at: req.body.found_at
-        },
-        () => {
-          log(info.user.username + " added a new pokemon " + req.body.dex_number + " to nuzlocke " + req.params.id);
-          res.json({
-            status: 200,
-            message: "Pokemon added successfully"
-          });
-        },
-        (err) => {
-          log(info.user.username + " cannot delete the pokemon " + req.body.dex_number + " of nuzlocke " + req.params.id);
-          res.json({
-            error: err,
-            message: "Database error"
-          });
-        });
-    });
+function nuzlocke_router(app) {
+  app.get('/nuzlocke/', users.getToken, (req, res) => {
+    verifyUser(req, res).then((sessionInfo) => NuzlockeCtrl.list(sessionInfo, req, res));
   });
 
-  app.post('/nuzlocke/:id/team', users.getToken, (req, res) => {
-    same_user(users, nuzlockeDb, res, req.params.id, req.token, info => {
-      nuzlockeDb.updateTeam(req.params.id, req.body.team,
-        () => {
-          log(info.user.username + " added a new pokemon " + req.body.dex_number + " to nuzlocke " + req.params.id);
-          res.json({
-            status: 200,
-            message: "Team edited successfully",
-            team: req.body.team
-          });
-        },
-        (err) => {
-          log(info.user.username + " cannot edit the team of nuzlocke " + req.params.id);
-          res.json({
-            error: err,
-            message: "Database error"
-          });
-        });
-    });
+  app.get('/nuzlocke/:id', users.getToken, (req, res) => {
+    same_user(req, res, () => NuzlockeCtrl.get(req, res));
+  });
+
+  app.post('/nuzlocke/', users.getToken, (req, res) => {
+    verifyUser(req, res).then((sessionInfo) => NuzlockeCtrl.add(sessionInfo, req, res));
   });
 
   app.delete('/nuzlocke/:id', users.getToken, (req, res) => {
-    same_user(users, nuzlockeDb, res, req.params.id, req.token, info => {
-      nuzlockeDb.delete(info.user.username, req.params.id,
-        () => {
-          log("Nuzlocke " + req.params.id + " deleted successfully by " + info.user.username);
-          res.json({
-            status: 200,
-            message: "Deleted successfully"
-          });
-        },
-        (err) => {
-          log("Nuzlocke " + req.params.id + " cannot be deleted.");
-          res.json({
-            error: err,
-            message: "Database error"
-          });
-        });
-    });
+    same_user(req, res, info => NuzlockeCtrl.delete(info, req, res));
+  });
+
+  app.post('/nuzlocke/:id/pokedex', users.getToken, (req, res) => {
+    same_user(req, res, info => NuzlockeCtrl.add_pokemon(info, req, res));
+  });
+
+  app.delete('/nuzlocke/:id/pokedex/:pkmId', users.getToken, (req, res) => {
+    same_user(req, res, info => NuzlockeCtrl.delete_pokemon(info, req, res));
+  });
+
+  app.post('/nuzlocke/:id/team', users.getToken, (req, res) => {
+    same_user(req, res, info => NuzlockeCtrl.update_team(info, req, res));
   });
 }
 
