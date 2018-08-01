@@ -81,6 +81,24 @@ function clearData() {
   };
 }
 
+function clearUsersData() {
+  return (done) => {
+    async.waterfall([
+      callback => {
+        usersClient.flushdb(err => {
+          if (err) throw err;
+          callback(null);
+        });
+      },
+      () => {
+        NuzlockeUser.remove({}, err => {
+          if (err) throw err;
+          done();
+        });
+      }
+    ]);
+  };
+}
 function addNuzlocke(username, pokedex) {
   let nuzlocke = {
     game: {
@@ -131,6 +149,7 @@ module.exports = {
   chai,
   userLogin,
   clearData,
+  clearUsersData,
   addNuzlocke,
   server,
   loginWithANuzlocke

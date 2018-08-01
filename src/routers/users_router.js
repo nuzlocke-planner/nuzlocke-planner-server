@@ -36,11 +36,11 @@ function usersRouter(app, users) {
               log("New user " + usernameHash + " - " + req.body.username + " registered");
               res.json({ status: 200, msg: 'New user registerd', id: usernameHash });
             } else {
-              res.send(err);
+              res.status(500).send(err);
               log("ERROR: Cannot add user " + user.username + " at nuzlockes database.");
               users.deleteUser(hash(user.username),
                 (msg) => log("Deleted user " + user.username + " becacuse it cannot be inserted on nuzlockdb"),
-                (err) => log("ERROR: Inconsistent data. Look yout data looking for user " + user.usuername)
+                (err) => log("ERROR: Inconsistent data. Look yout data looking for user " + user.username)
               );
             }
           });
@@ -63,7 +63,7 @@ function usersRouter(app, users) {
         surname: user.surname,
         email: user.email
       }),
-      (err) => res.send(err)
+      (err) => res.status(403).send(err)
     );
   });
 
@@ -74,56 +74,30 @@ function usersRouter(app, users) {
           log("User " + user.username + " logged in successfully. ");
         },
         (err) => {
-          res.send(err);
+          res.status(403).send(err);
           log("ERROR: " + err);
         }
       );
     } else {
-      res.status(400).json({
-        err: 'Password and username are mandatory.'
-      });
+      res.status(400).json({err: 'Password and username are mandatory.'});
       log("ERROR: Missing values on login");
     }
   });
 
   // Delete user
   // Middle function to get the token
-  app.get('/auth/delete/:username', (req, res) => {
-    if (req.params.username) {
-      const token = req.token;
-      const userId = hash(req.params.username);
-      // users.verifyToken(token,
-      //     (sessionInfo) => {
-      //         users.getUser(userId, 
-      //             (user) => {
-      //                 if (sessionInfo.user.username === user.username) {
-      //                     users.deleteUser(userId,
-      //                         (msg) => res.json({ msg }),
-      //                         (err) => res.json({ err })
-      //                     );
-      //                 } else {
-      //                     res.json({ error: "You cannot delete other users" });
-      //                 }
-      //             },
-      //             (err) => res.json({ err })
-      //         )
-      //     },
-      //     (err) => res.json({ err })
-      // );
-      var onError = (err) => res.json({
-        error: err
-      });
-      users.deleteUser(hash(req.params.username),
-        msg => nuzlockeDb.deleteUser(req.params.username, (msg) => res.json({
-          msg
-        }), onError),
-        onError
-      );
-    } else {
-      res.json({
-        msg: 'No username specified'
-      });
-    }
+  app.delete('/auth/', users.getToken, (req, res) => {
+    const token = req.token;
+    users.verifyToken(token,
+      (sessionInfo) => {
+        const userId = hash(sessionInfo.user.username);
+        users.deleteUser(userId,
+            (msg) => UsersCtrl.delete(sessionInfo.user.username, () => res.json({ msg })),
+            (err) => res.send({ err })
+        );
+      },
+      (err) => res.send(err)
+    );
   });
 }
 
