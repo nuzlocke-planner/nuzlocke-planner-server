@@ -1,5 +1,4 @@
 var express = require('express');
-var morgan = require('morgan');
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override');
 var app = express();
@@ -11,8 +10,6 @@ var nuzlockeRouter = require("./routers/nuzlocke_router");
 var users = require("./db-connections/users-db");
 require("./db-connections/nuzlocke-db");
 
-if (process.env.NODE_ENV !== "test")
-  app.use(morgan('dev')); // log every request to the console
 
 app.use(bodyParser.urlencoded({'extended': 'true' }));
 app.use(bodyParser.json());
@@ -27,5 +24,7 @@ nuzlockeRouter.nuzlocke_router(app);
 app.listen(process.env.PORT || 3000, () => {
   log("Server started...");
 });
+
+console.log(process.env.NODE_ENV);
 
 module.exports = app; // for testing
