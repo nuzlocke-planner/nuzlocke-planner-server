@@ -214,7 +214,7 @@ function pokedexContainsTeam(pokedex, team) {
 }
 
 function sendBackNuzlocke(req, res) {
-  Nuzlocke.findById(req.params.id, (err, nuzlocke) => {
+  Nuzlocke.findOne({ _id: req.params.id }, (err, nuzlocke) => {
     if (err) throw err;
     res.send(nuzlocke);
   });
