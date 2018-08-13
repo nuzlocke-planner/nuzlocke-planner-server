@@ -202,11 +202,13 @@ function pokedexContainsTeam(pokedex, team) {
   let t = team.slice(0);
 
   for(let i = 0; i < t.length; i++) {
-    let elem = pkdx.filter(pkm => t[i].dex_number === pkm.dex_number && t[i].found_at === pkm.found_at && t[i].nickname === pkm.nickname)[0];
-    if(elem) {
-      pkdx.splice(pkdx.indexOf(elem), 1);
-    } else {
-      return false;
+    if(t[i]) {
+      let elem = pkdx.filter(pkm => t[i].dex_number === pkm.dex_number && t[i].found_at === pkm.found_at && t[i].nickname === pkm.nickname)[0];
+      if(elem) {
+        pkdx.splice(pkdx.indexOf(elem), 1);
+      } else {
+        return false;
+      }
     }
   }
 
