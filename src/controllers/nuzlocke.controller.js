@@ -187,7 +187,7 @@ var NuzlockeCtrl = {
       },
       // Check if the posted team is valid
       (nuzlocke, next) => {
-        if(pokedexContainsTeam(nuzlocke.pokemon, req.body.team)) {
+        if(isTeamValid(nuzlocke.pokemon, req.body.team)) {
           next(null);
         } else {
           res.status(400).send(new NuzlockeError("Invalid team"));
@@ -211,12 +211,14 @@ var NuzlockeCtrl = {
   }
 };
 
-function pokedexContainsTeam(pokedex, team) {
+function isTeamValid(pokedex, team) {
   let pkdx = pokedex.slice(0);
   let t = team.slice(0);
 
   for(let i = 0; i < t.length; i++) {
     if(t[i]) {
+      if(t[i].is_defeated)
+        return false;
       let elem = pkdx.filter(pkm => t[i].dex_number === pkm.dex_number && t[i].found_at === pkm.found_at && t[i].nickname === pkm.nickname)[0];
       if(elem) {
         pkdx.splice(pkdx.indexOf(elem), 1);
