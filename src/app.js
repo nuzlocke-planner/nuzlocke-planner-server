@@ -15,7 +15,6 @@ app.use(bodyParser.urlencoded({'extended': 'true' }));
 app.use(bodyParser.json());
 app.use(methodOverride());
 
-
 // Set the routers
 usersRouter.usersRouter(app, users);
 nuzlockeRouter.nuzlocke_router(app);
@@ -24,7 +23,5 @@ nuzlockeRouter.nuzlocke_router(app);
 app.listen(process.env.PORT || 3000, () => {
   log("Server started...");
 });
-
-console.log(process.env.NODE_ENV);
 
 module.exports = app; // for testing

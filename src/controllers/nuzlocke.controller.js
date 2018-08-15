@@ -250,7 +250,7 @@ function pullPokemonOfTeam(nuzlockeId, pokedexId, pokemon) {
       (pokemon, next) => {
         Nuzlocke.findOne({ _id: nuzlockeId }, "team", (err, nuzlocke) => {
           if (err) throw err;
-          let nuzPokemon = nuzlocke.team.filter(slot => slot.found_at === pokemon.found_at)[0];
+          let nuzPokemon = nuzlocke.team.filter(slot => slot !== null).filter(slot => slot.found_at === pokemon.found_at)[0];
           if (nuzPokemon) 
             next(null, nuzPokemon);
           else
