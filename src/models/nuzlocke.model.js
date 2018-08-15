@@ -13,6 +13,10 @@ let pokemonSchema = Schema({
   nickname: {
     type: String,
     required: true
+  },
+  is_defeated: {
+    type: Boolean,
+    default: false
   }
 });
 

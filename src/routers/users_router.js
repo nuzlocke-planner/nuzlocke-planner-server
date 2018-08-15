@@ -36,7 +36,7 @@ function usersRouter(app, users) {
               log("New user " + usernameHash + " - " + req.body.username + " registered");
               res.json({ status: 200, msg: 'New user registerd', id: usernameHash });
             } else {
-              res.status(500).send(err);
+              res.status(500).json({error: err, msg: "Error when trying to prepare the nuzlocke data"});
               log("ERROR: Cannot add user " + user.username + " at nuzlockes database.");
               users.deleteUser(hash(user.username),
                 (msg) => log("Deleted user " + user.username + " becacuse it cannot be inserted on nuzlockdb"),

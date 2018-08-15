@@ -9,7 +9,7 @@ let NuzlockeUsers = require("./nuzlocke-users");
 describe('Nuzlocke Planner', () => {
   before('Delete all users data', utils.clearData());
 
-  NuzlockeBasics();
+  // NuzlockeBasics();
   NuzlockePokemon();
-  NuzlockeUsers();
+  // NuzlockeUsers();
 });

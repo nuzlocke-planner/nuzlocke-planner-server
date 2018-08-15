@@ -145,20 +145,34 @@ var NuzlockeCtrl = {
     ]); 
   },
   delete_pokemon: (userInfo, req, res) => {
-    async.waterfall([
-      // Update the nuzlocke
-      next => {
+    pullPokemonOfTeam(req.params.id, req.params.pkmId)
+      .then(() => {
         Nuzlocke.update({ _id: req.params.id }, { $pull: { pokemon: { _id: req.params.pkmId }}}, (err) => {
           if(err) 
             res.status(500).send(err);
           else {
             sendBackNuzlocke(req, res);
+            log(userInfo.user.username + " has deleted the pokemon " + req.params.pkmId + " from nuzlocke " + req.params.id);
           }
         });
-      }
-    ]);
+      })
+      .catch((status, msg) => res.status(status).send(msg));
   },
 
+  defeat_pokemon: (userInfo, req, res) => {
+    pullPokemonOfTeam(req.params.id, req.params.pkmId)
+      .then(() => {
+        Nuzlocke.update({ _id: req.params.id, "pokemon._id": req.params.pkmId }, { $set: { "pokemon.$.is_defeated": true }}, (err) => {
+          if(err) 
+            res.status(500).send(err);
+          else {
+            sendBackNuzlocke(req, res);
+            log(userInfo.user.username + " set the pokemon " + req.params.pkmId + " from nuzlocke " + req.params.id + " as defeated.");
+          }
+        });
+      })
+      .catch((status, msg) => res.status(status).send(msg))
+  },
   update_team: (userInfo, req, res) => {
     async.waterfall([
       // Get the nuzlocke
@@ -213,6 +227,43 @@ function pokedexContainsTeam(pokedex, team) {
   }
 
   return true;
+}
+
+function pullPokemonOfTeam(nuzlockeId, pokedexId, pokemon) {
+  return new Promise((resolve, reject) => {
+    async.waterfall([
+      // Get the pokemon
+      next => {
+        Nuzlocke.findOne({ _id: nuzlockeId }).select({ pokemon: {$elemMatch: { _id: pokedexId }}}).exec((err, result) => {
+          if (err) {
+            reject(500, err);
+          } else if(!result) {
+            reject(400, new NuzlockeError("Pokemon not found"));
+          } else {
+            next(null, result.pokemon[0]);
+          }
+        });
+      },
+      // Look for pokemon in team
+      (pokemon, next) => {
+        Nuzlocke.findOne({ _id: nuzlockeId }, "team", (err, nuzlocke) => {
+          if (err) throw err;
+          let nuzPokemon = nuzlocke.team.filter(slot => slot.found_at === pokemon.found_at)[0];
+          if (nuzPokemon) 
+            next(null, nuzPokemon);
+          else
+            resolve();
+        });
+      },
+      // Pull pokemon from team
+      (pokemon) => {
+        Nuzlocke.update({ _id: nuzlockeId }, { $pull: { team: { _id: pokemon._id }}}, err => {
+          if(err) reject(500, err);
+          else resolve()
+        });
+      }
+    ]);
+  });
 }
 
 function sendBackNuzlocke(req, res) {

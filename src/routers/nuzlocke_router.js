@@ -55,6 +55,10 @@ function nuzlocke_router(app) {
   app.post('/nuzlocke/:id/team', users.getToken, (req, res) => {
     same_user(req, res, info => NuzlockeCtrl.update_team(info, req, res));
   });
+
+  app.post('/nuzlocke/:id/pokedex/:pkmId/defeated', users.getToken, (req, res) => {
+    same_user(req, res, info => NuzlockeCtrl.defeat_pokemon(info, req, res));
+  });
 }
 
 exports.nuzlocke_router = nuzlocke_router;
