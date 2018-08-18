@@ -2,7 +2,7 @@
 
 ![Node v9.11.1](https://img.shields.io/badge/node-v9.11.1-green.svg)
 ![Node v9.11.1](https://img.shields.io/badge/npm-v5.6.0-green.svg)
-
+![Travis CI](https://api.travis-ci.org/nuzlocke-planner/nuzlocke-planner-server.svg?branch=master)
 Server for nuzlocke planner app. Build with NodeJS.
 
 ## Server architecture
