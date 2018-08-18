@@ -115,7 +115,7 @@ Endpoints related to user management.
 - Authorization: Bearer Token
 - Response:
 ```javascript
-Array<[NuzlockeSchema](#schemas)>
+Array<NuzlockeSchema>
 ```
 
 #### Get a nuzlocke
