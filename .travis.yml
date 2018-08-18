@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+- 9.11.1
+script:
+- npm run test
+deploy:
+  provider: heroku
+  api_key:
+    secure: QtCgVbKzg/PyExLrVWr1ALQqILWvUg+SODAU6z4+p2cxJe7QZTcYwZSQyzeNHh+uMLq6ron67yn/lWFqgU40Sc31Hq89dk8UbIlDJWfDKLoRqUsCwwULjqvxlmWJIjm7/6CGZyU0gnFKJsQAyMyl9+kS5YTCMMrF9yOlt1WvDZGeqtANXcH2OztjhulK1zd0AOeKt0Vqy+rXtVnSyF3Q/+Ill90w925ao6V1Vc315nXD14/r6llAkvhRjnpUjs9YEiiK/Gb60n/rZFYpJEOC1qT9whxCVVjCahyE2lpW+4lCwi7S6gG0QczFx7HmfxwY6pqVkux1hiIUROUGPC97Xpu0dbd5OswWbUqUMjOV7uDG8r/kNjD92Z0jTJJKst+HoCZoTawjStIiNUlAeLcGTRAc0hZXgVeyRa1erckgXe33sRUkxDSeG3IYzY9nO2bwTQSnrKpmYUvjbirXCh4TACqJ8z7IyOEgSrIDL2KB4k/xTlaIEtQFcs658s1BvAz5fJ2BwDSr+TmeJyMUmsx1BxOTsIhpI1cVdfWC+O9eblbqVNsUunUCPXys9hJvz8IckD0ky+Mahmn5E3FpVVifOcy6F6f7r+iP/eThwf0yjo+bc6yk4u22ne+dn/pEMChUxASqZDeyRhHCYJ7doV4mAQ8LtlE6mKTMaS+nqJEIBwM=
+  app: blooming-harbor-67193
+  on:
+    repo: nuzlocke-planner/nuzlocke-planner-server
